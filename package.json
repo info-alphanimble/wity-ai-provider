@@ -1,0 +1,71 @@
+{
+  "name": "wity-ai-provider",
+  "version": "0.1.0",
+  "description": "Wity decision model for the Vercel AI SDK (experimental_decide)",
+  "keywords": [
+    "wity",
+    "ai-sdk",
+    "vercel",
+    "decision",
+    "classification",
+    "provider"
+  ],
+  "homepage": "https://wity.alphanimble.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/info-alphanimble/wity-ai-provider.git"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:live": "WITY_LIVE=1 node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run test/live.test.ts",
+    "check": "npm run typecheck && npm test && npm run build",
+    "prepublishOnly": "npm run check"
+  },
+  "dependencies": {
+    "@ai-sdk/provider": "^4.0.26",
+    "@ai-sdk/provider-utils": "^5.0.58"
+  },
+  "peerDependencies": {
+    "ai": "^7.0.133",
+    "zod": "^3.25.76 || ^4.1.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "ai": "^7.0.137",
+    "tsdown": "^0.23.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3",
+    "zod": "^4.6.6"
+  }
+}
