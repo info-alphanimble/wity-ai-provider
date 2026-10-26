@@ -1,7 +1,7 @@
 {
   "name": "wity-ai-provider",
-  "version": "0.1.0",
-  "description": "Wity decision model for the Vercel AI SDK (experimental_decide)",
+  "version": "0.2.0",
+  "description": "Wity decision model for the Vercel AI SDK (experimental_decide), plus split and extract tools",
   "keywords": [
     "wity",
     "ai-sdk",

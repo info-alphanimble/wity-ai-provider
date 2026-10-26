@@ -1,6 +1,6 @@
 # Wity provider for the AI SDK
 
-[Wity](https://wity.alphanimble.com) answers fixed-option questions about text in one pass, with a probability for every option. This package makes Wity a decision model for the [Vercel AI SDK](https://ai-sdk.dev)'s `experimental_decide`.
+[Wity](https://wity.alphanimble.com) answers fixed-option questions about text in one pass, with a probability for every option. This package makes Wity a decision model for the [Vercel AI SDK](https://ai-sdk.dev)'s `experimental_decide`. It also gives agents Wity's split and extract as tools.
 
 ## Install
 
@@ -50,6 +50,31 @@ result.answers.severity.score;     // 1.98, between 0 and 2
 All questions are answered in one request against the same state. Choice and score answers include the probability of every option or level.
 
 Wity's probabilities aren't calibrated. Pick thresholds from your own labelled examples.
+
+## Split and extract tools
+
+`wity.tools` has two tools for an agent that runs on any other model. The model decides when to call them; Wity reads the document.
+
+```ts
+import { openai } from "@ai-sdk/openai";
+import { generateText, isStepCount } from "ai";
+import { wity } from "wity-ai-provider";
+
+const result = await generateText({
+  model: openai("gpt-4o-mini"),
+  prompt: `Who wrote each email in this thread, and what do they ask for?\n\n${thread}`,
+  tools: {
+    witySplit: wity.tools.split(),
+    wityExtract: wity.tools.extract(),
+  },
+  stopWhen: isStepCount(5),
+});
+```
+
+- `split()` cuts a document into whole items, like emails in a thread or clauses in a contract. The model says what one item is in plain words, like `"one item per email"`. Without that, Wity cuts one item per paragraph. The tool returns the items in order, each exactly as written.
+- `extract()` pulls named fields out of a document. The model names the fields, like `{ party: "Who signs the contract" }`. The tool returns each field's values as written, or `[]` when there are none.
+
+The tools use the provider's key, address, headers and fetch. A document can be up to 60,000 characters. A failed call isn't retried: the AI SDK shows the error to the model as the tool's result.
 
 ## Settings
 
@@ -119,6 +144,10 @@ await experimental_decide({ model: wity.decisionModel("wity-1"), state, question
 ```
 
 `maxLatencyMs` limits Wity's own work on the request; the abort signal also covers the network.
+
+## Update notice
+
+When code that uses `wity-ai-provider` runs at a terminal, it tells you on stderr when a newer version is out, at most once a day. It asks npm at most once a day, in the background, so nothing waits for it. It stays quiet in CI, when output is piped, and on servers. Set `WITY_NO_UPDATE_CHECK=1` to turn it off. The same variable turns it off in every Wity package.
 
 ## Licence
 

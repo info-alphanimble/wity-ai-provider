@@ -1,10 +1,17 @@
 import { type Experimental_DecisionModelV4 as DecisionModelV4, NoSuchModelError, type ProviderV4 } from "@ai-sdk/provider";
 import { type FetchFunction, loadApiKey, loadOptionalSetting, withoutTrailingSlash } from "@ai-sdk/provider-utils";
 import { WityDecisionModel, type WityDecisionModelId } from "./wity-decision-model";
+import { showUpdateNoticeOnce } from "./update-notice";
+import { VERSION } from "./version";
+import { createWityTools, type WityTools } from "./wity-tools";
 
-/** Wity as an AI SDK provider. Wity only makes decisions, so only `decisionModel` works. */
+/**
+ * Wity as an AI SDK provider. Wity only makes decisions, so only `decisionModel` works as a model.
+ * `tools` has Wity's split and extract, for an agent running on another model.
+ */
 export interface WityProvider extends ProviderV4 {
   decisionModel(modelId: WityDecisionModelId): DecisionModelV4;
+  tools: WityTools;
 }
 
 export interface WityProviderSettings {
@@ -31,14 +38,18 @@ export function createWity(options: WityProviderSettings = {}): WityProvider {
 
   // Read the key on each call, not here, so a key set after import still works.
   // Trimmed, because a key pasted with a leading space would otherwise be sent as "Bearer  wity_...".
-  const headers = () => ({
-    Authorization: `Bearer ${loadApiKey({
-      apiKey: options.apiKey,
-      environmentVariableName: "WITY_API_KEY",
-      description: "Wity",
-    }).trim()}`,
-    ...options.headers,
-  });
+  const headers = () => {
+    // Runs before the first request, not at import, so loading the package does nothing on its own.
+    showUpdateNoticeOnce("wity-ai-provider", VERSION, "npm install wity-ai-provider@latest");
+    return {
+      Authorization: `Bearer ${loadApiKey({
+        apiKey: options.apiKey,
+        environmentVariableName: "WITY_API_KEY",
+        description: "Wity",
+      }).trim()}`,
+      ...options.headers,
+    };
+  };
 
   const decisionModel = (modelId: WityDecisionModelId) =>
     new WityDecisionModel(modelId, { provider: "wity.decision", baseURL, headers, fetch: options.fetch });
@@ -46,6 +57,7 @@ export function createWity(options: WityProviderSettings = {}): WityProvider {
   return {
     specificationVersion: "v4",
     decisionModel,
+    tools: createWityTools({ baseURL, headers, fetch: options.fetch }),
     languageModel: (modelId) => {
       throw new NoSuchModelError({ modelId, modelType: "languageModel" });
     },

@@ -67,3 +67,13 @@ export const wityFailedResponseHandler = createJsonErrorResponseHandler({
     (typeof error.detail === "string" ? error.detail : error.detail != null ? JSON.stringify(error.detail) : null) ??
     "Wity request failed",
 });
+
+// Wity's answer to POST /v1/split. Only the items: each one is an exact slice of the text.
+export const witySplitResponseSchema = z.object({
+  items: z.array(z.object({ start: z.number(), end: z.number(), text: z.string() })),
+});
+
+// Wity's answer to POST /v1/extract. Only the values by field, which are keyed by the caller's field names.
+export const wityExtractResponseSchema = z.object({
+  fields: recordOf(z.array(z.string())),
+});

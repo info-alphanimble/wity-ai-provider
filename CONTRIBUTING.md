@@ -18,7 +18,7 @@ Put your key in a `.env` file in this folder (git-ignored):
 WITY_API_KEY=wity_...
 ```
 
-Then run `npm run test:live`. It makes about 4 billed calls, under a cent, including one with an image and one with thinking.
+Then run `npm run test:live`. It makes about 6 billed calls, under a cent, including one with an image and one with thinking.
 
 ## Example
 

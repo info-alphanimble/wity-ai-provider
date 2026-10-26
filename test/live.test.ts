@@ -4,7 +4,7 @@ import { experimental_decide } from "ai";
 import { describe, expect, it } from "vitest";
 import { createWity, wity } from "../src/index";
 
-// Real calls to Wity. Run with `npm run test:live` (needs WITY_API_KEY). About 4 billed calls, under a cent.
+// Real calls to Wity. Run with `npm run test:live` (needs WITY_API_KEY). About 6 billed calls, under a cent.
 const live = describe.skipIf(!process.env.WITY_LIVE);
 
 /** A small solid-colour PNG, built here so the test needs no image file. */
@@ -112,4 +112,21 @@ live("live Wity", () => {
     expect(APICallError.isInstance(error)).toBe(true);
     expect((error as APICallError).statusCode).toBe(401);
   }, 60_000);
+
+  const thread = "From: dana@example.com\nSeal test failed.\n\nFrom: marcus@example.com\nRerun it on 9 October 2025.";
+  const options = { toolCallId: "call_1", messages: [], context: {} };
+
+  it("splits a thread into emails", async () => {
+    const items = await wity.tools.split().execute?.({ text: thread, split: "one item per email" }, options);
+    expect(items).toHaveLength(2);
+  }, 150_000);
+
+  it("extracts the senders", async () => {
+    const fields = { sender: "The email address each email is from" };
+    // The tool returns one result, never a stream.
+    const values = (await wity.tools.extract().execute?.({ text: thread, fields }, options)) as Record<string, string[]>;
+    // Extract can differ between runs, so check the wiring, not every value.
+    expect(values?.sender).toContain("dana@example.com");
+    for (const value of values?.sender ?? []) expect(thread).toContain(value);
+  }, 150_000);
 });
